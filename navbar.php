@@ -9,7 +9,7 @@
             <a class="nav-link active" href="index.php">Customer</a>
             <a class="nav-link" href="itemview.php" >Item</a>
             <a class="nav-link" href="invoicereport.php">Invoice Report</a>
-            <a class="nav-link" href="invoiceitemreport">Invoice item Report</a>
+            <a class="nav-link" href="invoiceitemreport.php">Invoice item Report</a>
             <a class="nav-link" href="itemreport.php">item Report</a>
         </div>
         </div>
