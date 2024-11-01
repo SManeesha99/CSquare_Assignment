@@ -47,6 +47,10 @@ if (isset($_POST['updateBtn'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>Edit Customer</title>
 </head>
+    <div class=""> 
+        <!-- Navbar comes here -->
+        <?php include 'navbar.php'; ?>
+    </div>
 <body>
     <div class="container my-5">
         <h2 class="text-center">Edit Customer</h2>
