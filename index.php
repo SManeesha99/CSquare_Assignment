@@ -1,3 +1,45 @@
+<?php
+// Database connection details
+$servername = "localhost";
+$username = "root";
+$password = "12345";
+$dbname = "assignment";
+
+// Create connection
+$connection = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($connection->connect_error) {
+    die("Connection failed: " . $connection->connect_error);
+}
+
+// Handle form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["submitbtn"])) {
+    // Collect data from the form
+    $title = $_POST["selectTitle"];
+    $firstName = $connection->real_escape_string($_POST["firstName"]);
+    $lastName = $connection->real_escape_string($_POST["lastName"]);
+    $contact = $connection->real_escape_string($_POST["contact"]);
+    $district = $connection->real_escape_string($_POST["district"]);
+
+    // Prepare SQL statement to insert the data
+    $sql = "INSERT INTO customer (title, first_name, last_name, contact_no, district) 
+            VALUES ('$title', '$firstName', '$lastName', '$contact', '$district')";
+
+    // Execute the query and check for success
+    if ($connection->query($sql) === TRUE) {
+        // Redirect to the same page to refresh and clear the form
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
+    } else {
+        $error_message = "Error: " . $connection->error;
+    }
+}
+
+// Initialize search variable
+$search = isset($_GET['search']) ? $connection->real_escape_string($_GET['search']) : '';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +54,15 @@
             <!-- Left Column: List of Customers -->
             <div class="col-md-6">
                 <h2 class="text-center">List of Customers</h2>
+
+                <!-- Search Form -->
+                <form method="GET" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Search by details" value="<?php echo isset($_GET['search']) ? $_GET['search'] : ''; ?>">
+                        <button class="btn btn-outline-primary" type="submit">Search</button>
+                    </div>
+                </form>
+
                 <br>
                 <table class="table">
                     <thead>
@@ -26,21 +77,11 @@
                     </thead>
                     <tbody>
                         <?php
-                            $servername = "localhost";
-                            $username = "root";
-                            $password = "12345";
-                            $dbname = "assignment";
-
-                            // Create connection
-                            $connection = new mysqli($servername, $username, $password, $dbname);
-
-                            // Check connection
-                            if ($connection->connect_error) {
-                                die("Connection failed: " . $connection->connect_error);
-                            }
-
-                            // Read all rows from the database table
+                            // Read rows from the database table, filtering based on the search input
                             $sql = "SELECT * FROM customer";
+                            if (!empty($search)) {
+                                $sql .= " WHERE first_name LIKE '%$search%' OR last_name LIKE '%$search%' OR district LIKE '%$search%'";
+                            }
                             $result = $connection->query($sql);
 
                             if (!$result) {
@@ -57,45 +98,31 @@
                                     <td>$row[contact_no]</td>
                                     <td>$row[district]</td>
                                     <td>
-                                        <a class='btn btn-primary' href='/ERP_System/customeredit.php?id=$row[id]' role='button'>Edit</a>
-                                        <a class='btn btn-danger' href='/ERP_System/customerdelete.php?id=$row[id]' role='button'>Delete</a>
+                                        <a class='btn btn-primary' href='customeredit.php?id=$row[id]' role='button'>Edit</a>
+                                        <a class='btn btn-danger' href='#' role='button' onclick='confirmDelete($row[id])'>Delete</a>
                                     </td>
                                 </tr>
                                 ";
                             }
-
-                            // Function to add a new customer
-                            function addCustomer($connection) {
-                                if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submitbtn'])) {
-                                    // Get form data
-                                    $title = $_POST['selectTitle'];
-                                    $firstName = $_POST['firstName'];
-                                    $lastName = $_POST['lastName'];
-                                    $contact = $_POST['contact'];
-                                    $district = $_POST['district'];
-
-                                    // SQL query to insert data
-                                    $sql = "INSERT INTO customer (title, first_name, last_name, contact_no, district) 
-                                            VALUES ('$title', '$firstName', '$lastName', '$contact', '$district')";
-
-                                    if ($connection->query($sql) === TRUE) {
-                                        echo "<script>alert('New customer added successfully');</script>";
-                                    } else {
-                                        echo "Error: " . $sql . "<br>" . $connection->error;
-                                    }
-                                }
-                            }
-
-                            // Call the function to handle form submission
-                            addCustomer($connection);
                         ?>
                     </tbody>
                 </table>
+                <script>
+                    function confirmDelete(id) {
+                        if (confirm("Are you sure you want to delete this customer?")) {
+                            // If the user clicks "OK", redirect to the delete script
+                            window.location.href = '/CSquare_Assignment/customerdelete.php?id=' + id;
+                        }
+                    }
+                </script>
             </div>
 
             <!-- Right Column: Add Customer Form -->
             <div class="col-md-6">
                 <h2 class="text-center">Add Customer</h2>
+
+                <?php if (isset($error_message)) echo "<div class='alert alert-danger'>$error_message</div>"; ?>
+
                 <form class="row needs-validation" method="POST" novalidate>
                     <div class="row mb-3">
                         <div class="form-group col-md-6">
@@ -130,8 +157,8 @@
                     <div class="row mb-3">
                         <div class="form-group col-md-6">
                             <label class="form-label">District</label>
-                            <input type="number" class="form-control" name="district" required>
-                            <div class="invalid-feedback">Please enter a valid District No</div>
+                            <input type="text" class="form-control" name="district" required>
+                            <div class="invalid-feedback">Please enter a valid District</div>
                         </div>
                     </div>
 
