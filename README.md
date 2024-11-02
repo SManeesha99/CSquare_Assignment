@@ -2,8 +2,6 @@
 
 This project fulfills the requirements specified for the ERP System.
 
-## Deployment
-
 1. **Download the Project**:
    - Download the zip file containing the project.
 
